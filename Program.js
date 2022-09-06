@@ -1,8 +1,3 @@
-const canvas = document.getElementById("display");
-const display = canvas.getContext("2d");
-var W = 600;
-var H = 600;
-
 //2次元の数値を表すクラス。
 class Vector2D
 {
@@ -37,17 +32,42 @@ class COLORRGB
         return res;
     }
 }
+const canvas = document.getElementById("display");
+const display = canvas.getContext("2d");
+var W = 600;
+var H = 600;
+
 var STONERADIUS = (W / 8)/2 - 5;
 const GRID = 8;
 const NONE = 0;
-const WHITE = 1;
-const BLACK = 2;
+const STONE_WHITE = 1;
+const STONE_BLACK = 2;
 
 var COLOR_WHITE = new COLORRGB(200,200,200);
 var COLOR_BLACK = new COLORRGB(60,60,60);
 
-var Texts = [];
+const DIRECTIONS = 
+[
+    new Vector2D(-1,-1),new Vector2D(0,-1),new Vector2D(1,-1),
+    new Vector2D(-1, 0),                   new Vector2D(1, 0),
+    new Vector2D(-1, 1),new Vector2D(0, 1),new Vector2D(1, 1)
+];
+const UPLEFT = 0;
+const UP = 1;
+const UPRIGHT = 2;
+const LEFT = 3;
+const RIGHT = 4;
+const DOWNLEFT = 5;
+const DOWN = 6;
+const DOWNRIGHT = 7;
+
+
 const Texts_H = 10;
+
+var Player = STONE_WHITE;
+var Other = STONE_BLACK;
+
+var Texts = [];
 var Table = 
 [
     [0,0,0,0,0,0,0,0],
@@ -96,6 +116,7 @@ function drawgrid(grids)
     display.stroke();
 }
 
+//円を描画します。
 function DrawCirc(x,y,radius,color,Isfill=true)
 {
     display.beginPath();
@@ -112,6 +133,7 @@ function DrawCirc(x,y,radius,color,Isfill=true)
     }
 }
 
+//盤面データから石を描画します。
 function DrawStones(table,grid)
 {
     var dw = W / grid;
@@ -126,11 +148,11 @@ function DrawStones(table,grid)
             var x = dw * w + (dw / 2);
             var y = dh * h + (dh / 2);
             //display.fillText(String(Table[h][w]),10+Texts_H*w,10+Texts_H*h)
-            if(Table[h][w] == WHITE)
+            if(Table[h][w] == STONE_WHITE)
             {
                 DrawCirc(x,y,STONERADIUS,COLOR_WHITE);
             }
-            else if(Table[h][w] == BLACK)
+            else if(Table[h][w] == STONE_BLACK)
             {
                 DrawCirc(x,y,STONERADIUS,COLOR_BLACK);
             }
@@ -138,11 +160,13 @@ function DrawStones(table,grid)
     }
 }
 
+//画面を全消去します。
 function ClearDisplay(w,h)
 {
     display.clearRect(0,0,w,h);
 }
 
+//画面が描画される際に呼ばれます。
 function On_draw()
 {
     drawgrid(GRID);
@@ -154,12 +178,14 @@ function On_draw()
     });
 }
 
+//更新される際に呼ばれます。
 function On_Reload()
 {
     ClearDisplay();
     On_draw();
 }
 
+//指定した場所に石を打ちます。
 function PutStone(table,at,newstone)
 {
     table[at.y][at.x] = newstone;
