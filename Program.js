@@ -1,4 +1,4 @@
-//2�����̐��l��\���N���X�B
+//2次元の数値を表すクラス。
 class Vector2D
 {
     x;
@@ -8,9 +8,19 @@ class Vector2D
         this.x = x;
         this.y = y;
     }
+
+    GetString()
+    {
+        var res = "(";
+        res += String(this.x);
+        res += ",";
+        res += String(this.y);
+        res += ")";
+        return res;
+    }
 }
 
-//RGB�̐F����\���N���X
+//RGBの色情報を表すクラス
 class COLORRGB
 {
     r;
@@ -80,14 +90,42 @@ var Table =
     [0,0,0,0,0,0,0,0]
 ];
 
-//���㕔�ɕ�������o�͂��܂��B
+//左上部に文字列を出力します。
 function PrintString(text)
 {
     Texts.push(String(text));
     On_Reload();
 }
 
-//�w�肵���O���b�h���ŕ`�悵�܂��B
+function Copy(v1,v2)
+{
+    v2.x = v1.x;
+    v2.y = v1.y;
+}
+
+function Copy(v)
+{
+    var vec = new Vector2D(v.x,v.y);
+    return vec;
+}
+
+function Equal(v1,v2)
+{
+    return (v1.x == v2.x && v1.y == v2.y);
+}
+
+function Add(vec1,vec2)
+{
+    vec1.x += vec2.x;
+    vec1.y += vec2.y;
+}
+
+function GetStoneAt(table,pos)
+{
+    return table[pos.y][pos.x];
+}
+
+//指定したグリッド数で描画します。
 function drawgrid(grids)
 {
     //display.fillRect(1,1,10,10);
@@ -116,7 +154,7 @@ function drawgrid(grids)
     display.stroke();
 }
 
-//�~��`�悵�܂��B
+//円を描画します。
 function DrawCirc(x,y,radius,color,Isfill=true)
 {
     display.beginPath();
@@ -133,7 +171,7 @@ function DrawCirc(x,y,radius,color,Isfill=true)
     }
 }
 
-//�Ֆʃf�[�^����΂�`�悵�܂��B
+//盤面データから石を描画します。
 function DrawStones(table,grid)
 {
     var dw = W / grid;
@@ -160,13 +198,13 @@ function DrawStones(table,grid)
     }
 }
 
-//��ʂ�S�������܂��B
+//画面を全消去します。
 function ClearDisplay(w,h)
 {
     display.clearRect(0,0,w,h);
 }
 
-//��ʂ��`�悳���ۂɌĂ΂�܂��B
+//画面が描画される際に呼ばれます。
 function On_draw()
 {
     drawgrid(GRID);
@@ -178,21 +216,22 @@ function On_draw()
     });
 }
 
-//�X�V�����ۂɌĂ΂�܂��B
+//更新される際に呼ばれます。
 function On_Reload()
 {
     ClearDisplay();
     On_draw();
 }
 
-//�w�肵���ꏊ�ɐ΂�ł��܂��B
+//指定した場所に石を打ちます。
 function PutStone(table,at,newstone)
 {
     table[at.y][at.x] = newstone;
     On_Reload();
 }
 
-//�O���b�h�ʒu���擾���܂��B
+/*
+//グリッド位置を取得します。
 function GetCursorGridPos(x,y,grid,w,h)
 {
     var dw = w / grid;
@@ -203,18 +242,84 @@ function GetCursorGridPos(x,y,grid,w,h)
     pos.y = Math.floor(y / dh);
     return pos;
 }
+*/
 
-//�O���b�h�ʒu���擾���܂��B
+//グリッド位置を取得します。
 function GetCursorGridPos(xy,grid,w,h)
 {
     var dw = w / grid;
     var dh = h / grid;
 
-    xy.x /= dw;
-    xy.y /= dh;
-    xy.x = Math.floor(xy.x);
-    xy.y = Math.floor(xy.y);
-    return xy;
+    var res = new Vector2D(xy.x,xy.y);
+    res.x /= dw;
+    res.y /= dh;
+    res.x = Math.floor(xy.x);
+    res.y = Math.floor(xy.y);
+    return res;
+}
+
+//指定した位置が境界線外かどうかを返します。
+function IsBoundAtPosition(pos,grid=8)
+{
+    if(pos.x < 0 || pos.x >= grid-1) return true;
+    else if(pos.y < 0 || pos.y >= grid-1) return true;
+    return false;
+}
+
+//指定した位置から指定した方向が境界線外かどうかを返します。
+function IsBoundAtDirection(pos,direction,grid=8)
+{
+    pos = Add(pos,direction);
+    return IsBoundAtPosition(pos,grid);
+}
+
+//盤面の指定した位置に配置した際、裏返せる石があれば全て裏返します。
+function FindTurn(table,stone,at)
+{
+    DIRECTIONS.forEach(function(d,i)
+    {
+        var pos = Copy(at);
+        var IsDiff = false;
+        var IsSame = false;
+        while(true)
+        {
+            PrintString(pos.GetString());
+            //display.fillText("Hello",10,20);
+            var current = GetStoneAt(table,pos);
+            if(current == NONE) break;
+            else if(current == stone)
+            {
+                IsSame = true;
+                break;
+            }
+            else if(current != stone) IsDiff = true;
+            if(IsBoundAtDirection(pos,d)) break;
+            Add(pos,d);
+        }
+        if(IsSame && IsDiff)
+        {
+            var current = Copy(pos);
+            while(true)
+            {
+                PutStone(table,current,stone);
+                if(Equal(current,pos)) break;
+                Add(current,d);
+            }
+        }
+    })
+}
+
+//盤面上で指定した色の石が配置可能な位置を探します。配置可能な位置のリストを返します。
+function FindPuttables(table,stone)
+{
+    var puttables = [];
+    for(var y = 0;y < GRID;y++)
+    {
+        for(var x = 0;x < GRID;x++)
+        {
+
+        }
+    }
 }
 
 function display_clicked(e)
@@ -225,9 +330,15 @@ function display_clicked(e)
     //var GridPos = GetCursorGridPos(String(e.clientX-rect.left),String(e.clientY-rect.top),10,10);
     var cursor_pos = new Vector2D(e.clientX-rect.left,e.clientY-rect.top);
     var gridpos = GetCursorGridPos(cursor_pos,8,W,H);
-    display.fillText(String(cursor_pos.x),10,10);
-    display.fillText(String(cursor_pos.y),10,20);
+    
+    //display.fillText(String(cursor_pos.x),10,10);
+    //display.fillText(String(cursor_pos.y),10,20);
+    PutStone(Table,cursor_pos,STONE_BLACK);
+    //FindTurn(Table,STONE_BLACK,cursor_pos);
     On_draw();
+    //PrintString("Pos");
+    //PrintString(cursor_pos.GetString());
+
 }
 
 function display_mousedown(e)
