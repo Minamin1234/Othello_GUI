@@ -44,8 +44,8 @@ class COLORRGB
 }
 const canvas = document.getElementById("display");
 const display = canvas.getContext("2d");
-var W = 600;
-var H = 600;
+const W = 600;
+const H = 600;
 
 var STONERADIUS = (W / 8)/2 - 5;
 const GRID = 8;
@@ -186,11 +186,11 @@ function DrawStones(table,grid)
             var x = dw * w + (dw / 2);
             var y = dh * h + (dh / 2);
             //display.fillText(String(Table[h][w]),10+Texts_H*w,10+Texts_H*h)
-            if(Table[h][w] == STONE_WHITE)
+            if(table[h][w] == STONE_WHITE)
             {
                 DrawCirc(x,y,STONERADIUS,COLOR_WHITE);
             }
-            else if(Table[h][w] == STONE_BLACK)
+            else if(table[h][w] == STONE_BLACK)
             {
                 DrawCirc(x,y,STONERADIUS,COLOR_BLACK);
             }
@@ -209,6 +209,7 @@ function On_draw()
 {
     drawgrid(GRID);
     DrawStones(Table,GRID);
+
     Texts.forEach(function(item,i)
     {
         display.fillText(String(item),10,Texts_H*i+10);
@@ -219,18 +220,18 @@ function On_draw()
 //更新される際に呼ばれます。
 function On_Reload()
 {
-    ClearDisplay();
+    ClearDisplay(W,H);
     On_draw();
 }
 
 //指定した場所に石を打ちます。
 function PutStone(table,at,newstone)
 {
+    //PrintString(newstone);
     table[at.y][at.x] = newstone;
     On_Reload();
 }
 
-/*
 //グリッド位置を取得します。
 function GetCursorGridPos(x,y,grid,w,h)
 {
@@ -242,19 +243,17 @@ function GetCursorGridPos(x,y,grid,w,h)
     pos.y = Math.floor(y / dh);
     return pos;
 }
-*/
 
 //グリッド位置を取得します。
 function GetCursorGridPos(xy,grid,w,h)
 {
     var dw = w / grid;
     var dh = h / grid;
-
     var res = new Vector2D(xy.x,xy.y);
     res.x /= dw;
     res.y /= dh;
-    res.x = Math.floor(xy.x);
-    res.y = Math.floor(xy.y);
+    res.x = Math.floor(res.x);
+    res.y = Math.floor(res.y);
     return res;
 }
 
@@ -283,9 +282,10 @@ function FindTurn(table,stone,at)
         var IsSame = false;
         while(true)
         {
-            PrintString(pos.GetString());
             //display.fillText("Hello",10,20);
             var current = GetStoneAt(table,pos);
+            //PrintString("Pos");
+            //PrintString(pos.GetString());
             if(current == NONE) break;
             else if(current == stone)
             {
@@ -295,6 +295,8 @@ function FindTurn(table,stone,at)
             else if(current != stone) IsDiff = true;
             if(IsBoundAtDirection(pos,d)) break;
             Add(pos,d);
+            //PrintString("Add:");
+            //PrintString(pos.GetString());
         }
         if(IsSame && IsDiff)
         {
@@ -333,8 +335,11 @@ function display_clicked(e)
     
     //display.fillText(String(cursor_pos.x),10,10);
     //display.fillText(String(cursor_pos.y),10,20);
-    PutStone(Table,cursor_pos,STONE_BLACK);
-    //FindTurn(Table,STONE_BLACK,cursor_pos);
+
+    PutStone(Table,gridpos,STONE_BLACK);
+    PrintString(gridpos.GetString());
+
+    FindTurn(Table,STONE_BLACK,gridpos);
     On_draw();
     //PrintString("Pos");
     //PrintString(cursor_pos.GetString());
