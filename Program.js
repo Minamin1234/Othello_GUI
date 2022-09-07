@@ -284,6 +284,7 @@ function FindTurn(table,stone,at)
         {
             //display.fillText("Hello",10,20);
             var current = GetStoneAt(table,pos);
+            PrintString(current);
             //PrintString("Pos");
             //PrintString(pos.GetString());
             if(current == NONE) break;
@@ -298,6 +299,7 @@ function FindTurn(table,stone,at)
             //PrintString("Add:");
             //PrintString(pos.GetString());
         }
+        //PrintString(IsDiff);
         if(IsSame && IsDiff)
         {
             var current = Copy(pos);
