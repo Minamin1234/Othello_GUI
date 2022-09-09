@@ -97,29 +97,49 @@ function PrintString(text)
     On_Reload();
 }
 
+//指定した引数からベクトルクラスを返します。
+function MakeVector(x,y)
+{
+    var v = new Vector2D(x,y);
+    return v;
+}
+
+//指定したベクトルが盤面上で有効かどうかを返します。
+function IsValid(v,grid=8)
+{
+    if(v.x < 0 || v.x >= grid) return false;
+    else if(v.y < 0 || v.y >= grid) return false;
+    return true;
+}
+
+//v1の要素をv2にコピーします。
 function Copy(v1,v2)
 {
     v2.x = v1.x;
     v2.y = v1.y;
 }
 
+//指定したベクタのコピーを返します。
 function Copy(v)
 {
     var vec = new Vector2D(v.x,v.y);
     return vec;
 }
 
+//それぞれが等しいかどうかを返します。
 function Equal(v1,v2)
 {
     return (v1.x == v2.x && v1.y == v2.y);
 }
 
+//vec1にvec2の値をそれぞれ加算します。
 function Add(vec1,vec2)
 {
     vec1.x += vec2.x;
     vec1.y += vec2.y;
 }
 
+//盤面から指定した位置の石を取得します。
 function GetStoneAt(table,pos)
 {
     return table[pos.y][pos.x];
@@ -268,8 +288,34 @@ function IsBoundAtPosition(pos,grid=8)
 //指定した位置から指定した方向が境界線外かどうかを返します。
 function IsBoundAtDirection(pos,direction,grid=8)
 {
-    pos = Add(pos,direction);
-    return IsBoundAtPosition(pos,grid);
+    var current = Copy(pos);
+    return IsBoundAtPosition(current,grid);
+}
+
+//盤面に指定した位置に石を置いた場合、裏返す事ができるかどうかを返します。
+function IsTurnable(table,stone,at)
+{
+    DIRECTIONS.forEach(function(d,i)
+    {
+        var pos = Copy(at);
+        var IsDiff = false;
+        var IsSame = false;
+        while(true)
+        {
+            if(IsBoundAtDirection(pos,d)) break;
+            Add(pos,d);
+            var current = GetStoneAt(table,pos);
+            if(current == NONE) break;
+            else if(current == stone)
+            {
+                IsSame = true;
+                break;
+            }
+            else if(current != stone) IsDiff = true;
+        }
+        if(IsSame && IsDiff) return true;
+    })
+    return false;
 }
 
 //盤面の指定した位置に配置した際、裏返せる石があれば全て裏返します。
@@ -282,9 +328,9 @@ function FindTurn(table,stone,at)
         var IsSame = false;
         while(true)
         {
+            if(IsBoundAtDirection(pos,d)) break;
+            Add(pos,d);
             var current = GetStoneAt(table,pos);
-            //PrintString("Pos");
-            //PrintString(pos.GetString());
             if(current == NONE) break;
             else if(current == stone)
             {
@@ -292,15 +338,10 @@ function FindTurn(table,stone,at)
                 break;
             }
             else if(current != stone) IsDiff = true;
-            if(IsBoundAtDirection(pos,d)) break;
-            Add(pos,d);
-            //PrintString("Add:");
-            //PrintString(pos.GetString());
         }
-        //PrintString(IsDiff);
         if(IsSame && IsDiff)
         {
-            var current = Copy(pos);
+            var current = Copy(at);
             while(true)
             {
                 PutStone(table,current,stone);
@@ -319,7 +360,9 @@ function FindPuttables(table,stone)
     {
         for(var x = 0;x < GRID;x++)
         {
-
+            var current = MakeVector(x,y);
+            if(GetStoneAt(table,current) == NONE) continue;
+            if(IsTurnable(table,stone,current)) puttables.push(current);
         }
     }
 }
@@ -336,10 +379,10 @@ function display_clicked(e)
     //display.fillText(String(cursor_pos.x),10,10);
     //display.fillText(String(cursor_pos.y),10,20);
 
-    PutStone(Table,gridpos,STONE_BLACK);
+    PutStone(Table,gridpos,STONE_WHITE);
     PrintString(gridpos.GetString());
 
-    FindTurn(Table,STONE_BLACK,gridpos);
+    FindTurn(Table,STONE_WHITE,gridpos);
     On_draw();
     //PrintString("Pos");
     //PrintString(cursor_pos.GetString());
