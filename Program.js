@@ -282,9 +282,7 @@ function FindTurn(table,stone,at)
         var IsSame = false;
         while(true)
         {
-            //display.fillText("Hello",10,20);
             var current = GetStoneAt(table,pos);
-            PrintString(current);
             //PrintString("Pos");
             //PrintString(pos.GetString());
             if(current == NONE) break;
