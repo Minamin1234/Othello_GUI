@@ -192,7 +192,7 @@ function DrawCirc(x,y,radius,color,Isfill=true)
     }
 }
 
-//
+//盤面にリスト内全ての位置に配置可能を示す石を配置します。
 function DrawGuides(list_pos,stone)
 {
     list_pos.forEach(function(pos,i)
