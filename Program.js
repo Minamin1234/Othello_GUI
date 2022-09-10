@@ -239,7 +239,6 @@ function On_draw()
 {
     drawgrid(GRID);
     DrawStones(Table,GRID);
-
     Texts.forEach(function(item,i)
     {
         display.fillText(String(item),10,Texts_H*i+10);
@@ -290,8 +289,8 @@ function GetCursorGridPos(xy,grid,w,h)
 //指定した位置が境界線外かどうかを返します。
 function IsBoundAtPosition(pos,grid=8)
 {
-    if(pos.x < 0 || pos.x >= grid-1) return true;
-    else if(pos.y < 0 || pos.y >= grid-1) return true;
+    if(pos.x < 0 || pos.x >= grid) return true;
+    else if(pos.y < 0 || pos.y >= grid) return true;
     return false;
 }
 
@@ -299,6 +298,7 @@ function IsBoundAtPosition(pos,grid=8)
 function IsBoundAtDirection(pos,direction,grid=8)
 {
     var current = Copy(pos);
+    Add(current,direction);
     return IsBoundAtPosition(current,grid);
 }
 
@@ -322,6 +322,13 @@ function IsTurnable(table,stone,at)
                 break;
             }
             else if(current != stone) IsDiff = true;
+            PrintString("at:");
+            PrintString(at.GetString());
+            PrintString("pos:");
+            PrintString(pos.GetString());
+            PrintString("d:");
+            PrintString(d.GetString());
+            PrintString(GetStoneAt(table,pos));
         }
         if(IsSame && IsDiff) return true;
     })
@@ -371,7 +378,7 @@ function FindPuttables(table,stone)
         for(var x = 0;x < GRID;x++)
         {
             var current = MakeVector(x,y);
-            if(GetStoneAt(table,current) == NONE) continue;
+            if(GetStoneAt(table,current) != NONE) continue;
             if(IsTurnable(table,stone,current)) puttables.push(current);
         }
     }
@@ -394,7 +401,16 @@ function display_clicked(e)
     PutStone(Table,gridpos,STONE_WHITE);
     PrintString(gridpos.GetString());
 
+    var white = FindPuttables(Table,STONE_WHITE);
+    PrintString(white.length);
+    white.forEach(function(pos,i)
+    {
+        PrintString(pos.GetString());
+    })
+
+
     FindTurn(Table,STONE_WHITE,gridpos);
+    
     On_draw();
     //PrintString("Pos");
     //PrintString(cursor_pos.GetString());
