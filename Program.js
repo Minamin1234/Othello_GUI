@@ -1,4 +1,4 @@
-//2次元の数値を表すクラス。
+//2次元の数値を表すクラス
 class Vector2D
 {
     x;
@@ -48,6 +48,7 @@ const W = 600;
 const H = 600;
 
 var STONERADIUS = (W / 8)/2 - 5;
+var STONERADIUS_DEBUG = (W/8)/2 - 15;
 const GRID = 8;
 const NONE = 0;
 const STONE_WHITE = 1;
@@ -191,6 +192,15 @@ function DrawCirc(x,y,radius,color,Isfill=true)
     }
 }
 
+//
+function DrawGuides(list_pos,stone)
+{
+    list_pos.forEach(function(pos,i)
+    {
+        DrawCirc(pos.x,pos.y,STONERADIUS_DEBUG,stone);
+    });
+}
+
 //盤面データから石を描画します。
 function DrawStones(table,grid)
 {
@@ -224,7 +234,7 @@ function ClearDisplay(w,h)
     display.clearRect(0,0,w,h);
 }
 
-//画面が描画される際に呼ばれます。
+//画面が描画される際に呼ばれます
 function On_draw()
 {
     drawgrid(GRID);
@@ -365,6 +375,8 @@ function FindPuttables(table,stone)
             if(IsTurnable(table,stone,current)) puttables.push(current);
         }
     }
+
+    return puttables;
 }
 
 function display_clicked(e)
