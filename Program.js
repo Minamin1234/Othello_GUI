@@ -248,7 +248,7 @@ function On_draw()
     DrawStones(Table,GRID);
     Black_Puttables = FindPuttables(Table,STONE_BLACK);
     White_Puttables = FindPuttables(Table,STONE_WHITE);
-    DrawGuides(Black_Puttables,COLOR_BLACK);
+    DrawGuides(White_Puttables,COLOR_WHITE);
     Texts.forEach(function(item,i)
     {
         display.fillText(String(item),10,Texts_H*i+10);
@@ -406,14 +406,8 @@ function display_clicked(e)
     var cursor_pos = new Vector2D(e.clientX-rect.left,e.clientY-rect.top);
     var gridpos = GetCursorGridPos(cursor_pos,8,W,H);
     
-    PutStone(Table,gridpos,STONE_BLACK);
+    PutStone(Table,gridpos,STONE_WHITE);
     PrintString(gridpos.GetString());
-
-    white.forEach(function(pos,i)
-    {
-        PrintString(pos.GetString());
-    })
-
 
     FindTurn(Table,STONE_WHITE,gridpos);
     
