@@ -53,6 +53,10 @@ const GRID = 8;
 const NONE = 0;
 const STONE_WHITE = 1;
 const STONE_BLACK = 2;
+const NAME_WHITE = "WHITE";
+const NAME_BLACK = "BLACK";
+const RADIOBUTTON_PLAYERSTONE = "RB_PlayerStone";
+const CB_ISAUTOENEMY = "CB_IsAutoEnemy";
 
 var COLOR_WHITE = new COLORRGB(200,200,200);
 var COLOR_BLACK = new COLORRGB(60,60,60);
@@ -76,8 +80,9 @@ const DOWNRIGHT = 7;
 
 const Texts_H = 10;
 
-var Player = STONE_WHITE;
-var Other = STONE_BLACK;
+var IsAutoEnemy = false;
+var Player = NAME_BLACK;
+var Other = NAME_WHITE;
 
 var Texts = [];
 var Table = 
@@ -235,6 +240,13 @@ function DrawStones(table,grid)
     }
 }
 
+//初期化処理
+function On_Initialize()
+{
+    Player = GetSelectedValue(RADIOBUTTON_PLAYERSTONE);
+    Other = SwitchStone(Player);
+}
+
 //画面を全消去します。
 function ClearDisplay(w,h)
 {
@@ -304,6 +316,41 @@ function GetPosFromGridPos(gridpos,grid,w,h)
     var y = dh * gridpos.y + (dh / 2);
 
     return MakeVector(x,y);
+}
+
+//指定した要素の無効化を設定します。
+function SetDisabled(name,disable)
+{
+    var el = document.getElementsByName(name);
+    el.diabled = disable;
+}
+
+//複数の要素の無効化を設定します。
+function SetAllDisabled(name,disable)
+{
+    var el = document.getElementsByName(name);
+    for(var e of el)
+    {
+        e.disabled = disable;
+    }
+}
+
+//指定した石の色の反対色を返します。
+function SwitchStone(player_stonename)
+{
+    if(player_stonename == NAME_BLACK) return NAME_WHITE;
+    return NAME_BLACK;
+}
+
+//指定したラジオボタン要素で選択されている値を返します。
+function GetSelectedValue(name)
+{
+    var el = document.getElementsByName(name);
+    for(var i of el)
+    {
+        if(i.checked) return i.value;
+    }
+    return "";
 }
 
 //指定した位置が境界線外かどうかを返します。
@@ -410,6 +457,7 @@ function display_clicked(e)
     PrintString(gridpos.GetString());
 
     FindTurn(Table,STONE_WHITE,gridpos);
+    PrintString(GetSelectedValue("player_stone"));
     
     On_draw();
 }
@@ -426,4 +474,5 @@ canvas.addEventListener("click",display_clicked,false);
 canvas.addEventListener("mousedown",display_mousedown,false);
 canvas.addEventListener("mouseup",display_mouseup,false);
 
+On_Initialize();
 On_draw();
