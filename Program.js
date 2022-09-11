@@ -266,7 +266,6 @@ function On_Reload()
 //指定した場所に石を打ちます。
 function PutStone(table,at,newstone)
 {
-    //PrintString(newstone);
     table[at.y][at.x] = newstone;
     On_Reload();
 }
@@ -419,7 +418,6 @@ function display_clicked(e)
     FindTurn(Table,STONE_WHITE,gridpos);
     
     On_draw();
-    //PrintString("Pos");
 }
 
 function display_mousedown(e)
