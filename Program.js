@@ -56,6 +56,7 @@ const STONE_BLACK = 2;
 
 var COLOR_WHITE = new COLORRGB(200,200,200);
 var COLOR_BLACK = new COLORRGB(60,60,60);
+var COLOR_GRID = new COLORRGB(0,0,0);
 
 const DIRECTIONS = 
 [
@@ -91,6 +92,9 @@ var Table =
     [0,0,0,0,0,0,0,0]
 ];
 
+var White_Puttables = [];
+var Black_Puttables = [];
+
 //左上部に文字列を出力します。
 function PrintString(text)
 {
@@ -103,6 +107,13 @@ function MakeVector(x,y)
 {
     var v = new Vector2D(x,y);
     return v;
+}
+
+//RGB値からカラーを作成します。
+function MakeColor(r,g,b)
+{
+    var color = new COLORRGB(r,g,b);
+    return color;
 }
 
 //指定したベクトルが盤面上で有効かどうかを返します。
@@ -147,13 +158,14 @@ function GetStoneAt(table,pos)
 }
 
 //指定したグリッド数で描画します。
-function drawgrid(grids)
+function drawgrid(grids,color=MakeColor(0,0,0))
 {
     //display.fillRect(1,1,10,10);
     var dw = W / grids;
     var dh = H / grids;
     //display.fillText(grids.toString(),10,10);
     display.beginPath();
+    display.strokeStyle = color.GetColor();
     var cnt = 0;
     for(var h = 0;h <= grids;h++)
     {
@@ -197,33 +209,28 @@ function DrawGuides(list_pos,stone)
 {
     list_pos.forEach(function(pos,i)
     {
-        DrawCirc(pos.x,pos.y,STONERADIUS_DEBUG,stone);
+        var xy = GetPosFromGridPos(pos,GRID,W,H);
+        DrawCirc(xy.x,xy.y,STONERADIUS_DEBUG,stone,false);
     });
 }
 
 //盤面データから石を描画します。
 function DrawStones(table,grid)
 {
-    var dw = W / grid;
-    var dh = H / grid;
-    //dw = dw / 2;
-    //dh = dh / 2;
     display.beginPath();
     for(var h = 0;h < grid;h++)
     {
         for(var w = 0;w < grid;w++)
         {
-            var x = dw * w + (dw / 2);
-            var y = dh * h + (dh / 2);
-            //display.fillText(String(Table[h][w]),10+Texts_H*w,10+Texts_H*h)
-            if(table[h][w] == STONE_WHITE)
-            {
-                DrawCirc(x,y,STONERADIUS,COLOR_WHITE);
-            }
-            else if(table[h][w] == STONE_BLACK)
-            {
-                DrawCirc(x,y,STONERADIUS,COLOR_BLACK);
-            }
+           var pos = GetPosFromGridPos(MakeVector(w,h),grid,W,H);
+           if(table[h][w] == STONE_WHITE)
+           {
+                DrawCirc(pos.x,pos.y,STONERADIUS,COLOR_WHITE);
+           }
+           else if(table[h][w] == STONE_BLACK)
+           {
+                DrawCirc(pos.x,pos.y,STONERADIUS,COLOR_BLACK);
+           }
         }
     }
 }
@@ -237,8 +244,11 @@ function ClearDisplay(w,h)
 //画面が描画される際に呼ばれます
 function On_draw()
 {
-    drawgrid(GRID);
+    drawgrid(GRID,COLOR_GRID);
     DrawStones(Table,GRID);
+    Black_Puttables = FindPuttables(Table,STONE_BLACK);
+    White_Puttables = FindPuttables(Table,STONE_WHITE);
+    DrawGuides(Black_Puttables,COLOR_BLACK);
     Texts.forEach(function(item,i)
     {
         display.fillText(String(item),10,Texts_H*i+10);
@@ -286,6 +296,17 @@ function GetCursorGridPos(xy,grid,w,h)
     return res;
 }
 
+//グリッド位置からディスプレイの絶対位置を取得します。
+function GetPosFromGridPos(gridpos,grid,w,h)
+{
+    var dw = w / grid;
+    var dh = h / grid;
+    var x = dw * gridpos.x + (dw / 2);
+    var y = dh * gridpos.y + (dh / 2);
+
+    return MakeVector(x,y);
+}
+
 //指定した位置が境界線外かどうかを返します。
 function IsBoundAtPosition(pos,grid=8)
 {
@@ -305,7 +326,7 @@ function IsBoundAtDirection(pos,direction,grid=8)
 //盤面に指定した位置に石を置いた場合、裏返す事ができるかどうかを返します。
 function IsTurnable(table,stone,at)
 {
-    DIRECTIONS.forEach(function(d,i)
+    for(let d of DIRECTIONS)
     {
         var pos = Copy(at);
         var IsDiff = false;
@@ -322,16 +343,9 @@ function IsTurnable(table,stone,at)
                 break;
             }
             else if(current != stone) IsDiff = true;
-            PrintString("at:");
-            PrintString(at.GetString());
-            PrintString("pos:");
-            PrintString(pos.GetString());
-            PrintString("d:");
-            PrintString(d.GetString());
-            PrintString(GetStoneAt(table,pos));
         }
         if(IsSame && IsDiff) return true;
-    })
+    }
     return false;
 }
 
@@ -390,19 +404,12 @@ function display_clicked(e)
 {
     ClearDisplay(W,H);
     var rect = e.target.getBoundingClientRect();
-    //display.fillRect(e.clientX-rect.left,e.clientY-rect.top,10,10);
-    //var GridPos = GetCursorGridPos(String(e.clientX-rect.left),String(e.clientY-rect.top),10,10);
     var cursor_pos = new Vector2D(e.clientX-rect.left,e.clientY-rect.top);
     var gridpos = GetCursorGridPos(cursor_pos,8,W,H);
     
-    //display.fillText(String(cursor_pos.x),10,10);
-    //display.fillText(String(cursor_pos.y),10,20);
-
-    PutStone(Table,gridpos,STONE_WHITE);
+    PutStone(Table,gridpos,STONE_BLACK);
     PrintString(gridpos.GetString());
 
-    var white = FindPuttables(Table,STONE_WHITE);
-    PrintString(white.length);
     white.forEach(function(pos,i)
     {
         PrintString(pos.GetString());
@@ -413,20 +420,14 @@ function display_clicked(e)
     
     On_draw();
     //PrintString("Pos");
-    //PrintString(cursor_pos.GetString());
-
 }
 
 function display_mousedown(e)
 {
-    //var rect = e.target.getBoundingClientRect();
-    //display.fillRect(e.clientX-rect.left,e.clientY-rect.top,10,10);
 }
 
 function display_mouseup(e)
 {
-    //var rect = e.target.getBoundingClientRect();
-    //display.fillRect(e.clientX-rect.left,e.clientY-rect.top,10,10);
 }
 
 canvas.addEventListener("click",display_clicked,false);
