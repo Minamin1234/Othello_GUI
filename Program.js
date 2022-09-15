@@ -1,4 +1,4 @@
-//2次元の数値を表すクラス
+/**2次元の数値を表すクラス */
 class Vector2D
 {
     x;
@@ -20,7 +20,7 @@ class Vector2D
     }
 }
 
-//RGBの色情報を表すクラス
+/**RGBの色情報を表すクラス */
 class COLORRGB
 {
     r;
@@ -80,9 +80,12 @@ const DOWNRIGHT = 7;
 
 const Texts_H = 10;
 
+const IsDebug = true;
 var IsAutoEnemy = false;
-var Player = NAME_BLACK;
-var Other = NAME_WHITE;
+var Locked = false;
+var Player = STONE_BLACK;
+var Other = STONE_WHITE;
+var CurrentTurn = Player;
 
 var Texts = [];
 var Table = 
@@ -100,28 +103,28 @@ var Table =
 var White_Puttables = [];
 var Black_Puttables = [];
 
-//左上部に文字列を出力します。
+/**左上部に文字列を出力します。 */
 function PrintString(text)
 {
     Texts.push(String(text));
     On_Reload();
 }
 
-//指定した引数からベクトルクラスを返します。
+/**指定した引数からベクトルクラスを返します。 */
 function MakeVector(x,y)
 {
     var v = new Vector2D(x,y);
     return v;
 }
 
-//RGB値からカラーを作成します。
+/**RGB値からカラーを作成します。 */
 function MakeColor(r,g,b)
 {
     var color = new COLORRGB(r,g,b);
     return color;
 }
 
-//指定したベクトルが盤面上で有効かどうかを返します。
+/**指定したベクトルが盤面上で有効かどうかを返します。 */
 function IsValid(v,grid=8)
 {
     if(v.x < 0 || v.x >= grid) return false;
@@ -129,40 +132,58 @@ function IsValid(v,grid=8)
     return true;
 }
 
-//v1の要素をv2にコピーします。
+/**v1の要素をv2にコピーします。 */
 function Copy(v1,v2)
 {
     v2.x = v1.x;
     v2.y = v1.y;
 }
 
-//指定したベクタのコピーを返します。
+/**指定したベクタのコピーを返します。 */
 function Copy(v)
 {
     var vec = new Vector2D(v.x,v.y);
     return vec;
 }
 
-//それぞれが等しいかどうかを返します。
+/**それぞれが等しいかどうかを返します。 */
 function Equal(v1,v2)
 {
     return (v1.x == v2.x && v1.y == v2.y);
 }
 
-//vec1にvec2の値をそれぞれ加算します。
+/**vec1にvec2の値をそれぞれ加算します。 */
 function Add(vec1,vec2)
 {
     vec1.x += vec2.x;
     vec1.y += vec2.y;
 }
 
-//盤面から指定した位置の石を取得します。
+/**指定した石のカラーコードを返します */
+function GetStoneColor(stone)
+{
+    if(stone == STONE_BLACK) return COLOR_BLACK;
+    return COLOR_WHITE;
+}
+
+/**盤面から指定した位置の石を取得します。 */
 function GetStoneAt(table,pos)
 {
     return table[pos.y][pos.x];
 }
 
-//指定したグリッド数で描画します。
+/**プレイヤーの石や対戦モードの設定を決定し試合を開始します。 */
+function Start()
+{
+    if(!Locked)
+    {
+        Locked = true;
+        SetAllDisabled(RADIOBUTTON_PLAYERSTONE,true);
+        SetAllDisabled(CB_ISAUTOENEMY,true);
+    }
+}
+
+/**指定したグリッド数で描画します。 */
 function drawgrid(grids,color=MakeColor(0,0,0))
 {
     //display.fillRect(1,1,10,10);
@@ -192,7 +213,7 @@ function drawgrid(grids,color=MakeColor(0,0,0))
     display.stroke();
 }
 
-//円を描画します。
+/**円を描画します。 */
 function DrawCirc(x,y,radius,color,Isfill=true)
 {
     display.beginPath();
@@ -209,17 +230,24 @@ function DrawCirc(x,y,radius,color,Isfill=true)
     }
 }
 
-//盤面にリスト内全ての位置に配置可能を示す石を配置します。
-function DrawGuides(list_pos,stone)
+/**盤面にリスト内全ての位置に配置可能を示す石を配置します。 */
+function DrawGuides(list_pos,stone_color)
 {
     list_pos.forEach(function(pos,i)
     {
         var xy = GetPosFromGridPos(pos,GRID,W,H);
-        DrawCirc(xy.x,xy.y,STONERADIUS_DEBUG,stone,false);
+        DrawCirc(xy.x,xy.y,STONERADIUS_DEBUG,stone_color,false);
     });
 }
 
-//盤面データから石を描画します。
+//指定した石で配置可能な場所を示す表示を描画させます。
+function ShowGuides(stone)
+{
+    var puttables = FindPuttables(Table,stone);
+    DrawGuides(puttables,GetStoneColor(stone));
+}
+
+/**盤面データから石を描画します。 */
 function DrawStones(table,grid)
 {
     display.beginPath();
@@ -240,27 +268,28 @@ function DrawStones(table,grid)
     }
 }
 
-//初期化処理
+/**初期化処理*/
 function On_Initialize()
 {
-    Player = GetSelectedValue(RADIOBUTTON_PLAYERSTONE);
+    //Player = GetSelectedValue(RADIOBUTTON_PLAYERSTONE);
+    //Other = SwitchStone(Player);
+    Player = GetPlayerStone(RADIOBUTTON_PLAYERSTONE);
     Other = SwitchStone(Player);
+    CurrentTurn = GetPlayerStone(RADIOBUTTON_PLAYERSTONE);
 }
 
-//画面を全消去します。
+/**画面を全消去します。*/
 function ClearDisplay(w,h)
 {
     display.clearRect(0,0,w,h);
 }
 
-//画面が描画される際に呼ばれます
+/**画面が描画される際に呼ばれます */
 function On_draw()
 {
     drawgrid(GRID,COLOR_GRID);
     DrawStones(Table,GRID);
-    Black_Puttables = FindPuttables(Table,STONE_BLACK);
-    White_Puttables = FindPuttables(Table,STONE_WHITE);
-    DrawGuides(White_Puttables,COLOR_WHITE);
+    ShowGuides(CurrentTurn);
     Texts.forEach(function(item,i)
     {
         display.fillText(String(item),10,Texts_H*i+10);
@@ -268,21 +297,21 @@ function On_draw()
     });
 }
 
-//更新される際に呼ばれます。
+/**更新される際に呼ばれます。 */
 function On_Reload()
 {
     ClearDisplay(W,H);
     On_draw();
 }
 
-//指定した場所に石を打ちます。
+/**指定した場所に石を打ちます。 */
 function PutStone(table,at,newstone)
 {
     table[at.y][at.x] = newstone;
     On_Reload();
 }
 
-//グリッド位置を取得します。
+/**グリッド位置を取得します。 */
 function GetCursorGridPos(x,y,grid,w,h)
 {
     var dw = w / grid;
@@ -294,7 +323,7 @@ function GetCursorGridPos(x,y,grid,w,h)
     return pos;
 }
 
-//グリッド位置を取得します。
+/**グリッド位置を取得します。 */
 function GetCursorGridPos(xy,grid,w,h)
 {
     var dw = w / grid;
@@ -307,7 +336,7 @@ function GetCursorGridPos(xy,grid,w,h)
     return res;
 }
 
-//グリッド位置からディスプレイの絶対位置を取得します。
+/**グリッド位置からディスプレイの絶対位置を取得します。 */
 function GetPosFromGridPos(gridpos,grid,w,h)
 {
     var dw = w / grid;
@@ -318,14 +347,7 @@ function GetPosFromGridPos(gridpos,grid,w,h)
     return MakeVector(x,y);
 }
 
-//指定した要素の無効化を設定します。
-function SetDisabled(name,disable)
-{
-    var el = document.getElementsByName(name);
-    el.diabled = disable;
-}
-
-//複数の要素の無効化を設定します。
+/**複数の要素の無効化を設定します。 */
 function SetAllDisabled(name,disable)
 {
     var el = document.getElementsByName(name);
@@ -335,14 +357,14 @@ function SetAllDisabled(name,disable)
     }
 }
 
-//指定した石の色の反対色を返します。
-function SwitchStone(player_stonename)
+/**指定した石の色の反対色の石を返します。 */
+function SwitchStone(current_stone)
 {
-    if(player_stonename == NAME_BLACK) return NAME_WHITE;
-    return NAME_BLACK;
+    if(current_stone == STONE_BLACK) return STONE_WHITE;
+    return STONE_BLACK;
 }
 
-//指定したラジオボタン要素で選択されている値を返します。
+/**指定したラジオボタン要素で選択されている値を返します。 */
 function GetSelectedValue(name)
 {
     var el = document.getElementsByName(name);
@@ -353,7 +375,14 @@ function GetSelectedValue(name)
     return "";
 }
 
-//指定した位置が境界線外かどうかを返します。
+/**プレイヤーの石選択で選択されている石を取得します。 */
+function GetPlayerStone(name)
+{
+    if(GetSelectedValue(name) == NAME_BLACK) return STONE_BLACK;
+    return STONE_WHITE;
+}
+
+/**指定した位置が境界線外かどうかを返します。 */
 function IsBoundAtPosition(pos,grid=8)
 {
     if(pos.x < 0 || pos.x >= grid) return true;
@@ -361,7 +390,7 @@ function IsBoundAtPosition(pos,grid=8)
     return false;
 }
 
-//指定した位置から指定した方向が境界線外かどうかを返します。
+/**指定した位置から指定した方向が境界線外かどうかを返します。 */
 function IsBoundAtDirection(pos,direction,grid=8)
 {
     var current = Copy(pos);
@@ -369,7 +398,7 @@ function IsBoundAtDirection(pos,direction,grid=8)
     return IsBoundAtPosition(current,grid);
 }
 
-//盤面に指定した位置に石を置いた場合、裏返す事ができるかどうかを返します。
+/**盤面に指定した位置に石を置いた場合、裏返す事ができるかどうかを返します。 */
 function IsTurnable(table,stone,at)
 {
     for(let d of DIRECTIONS)
@@ -395,7 +424,7 @@ function IsTurnable(table,stone,at)
     return false;
 }
 
-//盤面の指定した位置に配置した際、裏返せる石があれば全て裏返します。
+/**盤面の指定した位置に配置した際、裏返せる石があれば全て裏返します。 */
 function FindTurn(table,stone,at)
 {
     DIRECTIONS.forEach(function(d,i)
@@ -429,7 +458,7 @@ function FindTurn(table,stone,at)
     })
 }
 
-//盤面上で指定した色の石が配置可能な位置を探します。配置可能な位置のリストを返します。
+/**盤面上で指定した色の石が配置可能な位置を探します。配置可能な位置のリストを返します。 */
 function FindPuttables(table,stone)
 {
     var puttables = [];
@@ -446,20 +475,57 @@ function FindPuttables(table,stone)
     return puttables;
 }
 
+/**石が置かれた際に呼ばれます。 */
+function On_PutStone(put_stone,at)
+{
+    PutStone(Table,at,put_stone);
+    if(IsDebug)
+    {
+        PrintString(at.GetString());
+    }
+    FindTurn(Table,CurrentTurn,at);
+    CurrentTurn = SwitchStone(CurrentTurn);
+}
+
+/**Canvas内をクリックされた時 */
 function display_clicked(e)
 {
+    Start();
     ClearDisplay(W,H);
     var rect = e.target.getBoundingClientRect();
     var cursor_pos = new Vector2D(e.clientX-rect.left,e.clientY-rect.top);
     var gridpos = GetCursorGridPos(cursor_pos,8,W,H);
-    
+    //On_PutStone(CurrentTurn,gridpos);
+    /*
     PutStone(Table,gridpos,STONE_WHITE);
     PrintString(gridpos.GetString());
 
     FindTurn(Table,STONE_WHITE,gridpos);
     PrintString(GetSelectedValue("player_stone"));
+    */
     
+    PutStone(Table,gridpos,CurrentTurn);
+    if(IsDebug)
+    {
+        PrintString(gridpos.GetString());
+    }
+    FindTurn(Table,CurrentTurn,gridpos);
+    CurrentTurn = SwitchStone(CurrentTurn);
     On_draw();
+}
+
+function StoneColor_Clicked()
+{
+    Player = GetPlayerStone(RADIOBUTTON_PLAYERSTONE);
+    Other = SwitchStone(Player);
+    CurrentTurn = Player;
+    On_Reload();
+}
+
+/**Resetボタンが押された時 */
+function Reset_Clicked()
+{
+    document.location.reload();
 }
 
 function display_mousedown(e)
