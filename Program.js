@@ -57,6 +57,7 @@ const NAME_WHITE = "WHITE";
 const NAME_BLACK = "BLACK";
 const RADIOBUTTON_PLAYERSTONE = "RB_PlayerStone";
 const CB_ISAUTOENEMY = "CB_IsAutoEnemy";
+const T_CURRENTTURN = "T_CurrentTurn";
 
 var COLOR_WHITE = new COLORRGB(200,200,200);
 var COLOR_BLACK = new COLORRGB(60,60,60);
@@ -80,7 +81,8 @@ const DOWNRIGHT = 7;
 
 const Texts_H = 10;
 
-const IsDebug = false;
+const IsDebug = true;
+var NoobMode = false;
 var IsAutoEnemy = false;
 var Locked = false;
 var Player = STONE_BLACK;
@@ -166,6 +168,13 @@ function GetStoneColor(stone)
     return COLOR_WHITE;
 }
 
+/**指定した石の名称を返します */
+function GetStoneName(stone)
+{
+    if(stone == STONE_BLACK) return NAME_BLACK;
+    return NAME_WHITE;
+}
+
 /**盤面から指定した位置の石を取得します。 */
 function GetStoneAt(table,pos)
 {
@@ -247,6 +256,13 @@ function ShowGuides(stone)
     DrawGuides(puttables,GetStoneColor(stone));
 }
 
+/**現在のターンである石の名前を表示させます */
+function ShowCurrentTurn(name)
+{
+    var txt = document.getElementById(T_CURRENTTURN);
+    txt.innerText = name;
+}
+
 /**盤面データから石を描画します。 */
 function DrawStones(table,grid)
 {
@@ -289,7 +305,8 @@ function On_draw()
 {
     drawgrid(GRID,COLOR_GRID);
     DrawStones(Table,GRID);
-    if(IsDebug)
+    ShowCurrentTurn(GetStoneName(CurrentTurn));
+    if(IsDebug || NoobMode)
     {
         ShowGuides(CurrentTurn);
     }
