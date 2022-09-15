@@ -80,7 +80,7 @@ const DOWNRIGHT = 7;
 
 const Texts_H = 10;
 
-const IsDebug = true;
+const IsDebug = false;
 var IsAutoEnemy = false;
 var Locked = false;
 var Player = STONE_BLACK;
@@ -289,7 +289,10 @@ function On_draw()
 {
     drawgrid(GRID,COLOR_GRID);
     DrawStones(Table,GRID);
-    ShowGuides(CurrentTurn);
+    if(IsDebug)
+    {
+        ShowGuides(CurrentTurn);
+    }
     Texts.forEach(function(item,i)
     {
         display.fillText(String(item),10,Texts_H*i+10);
