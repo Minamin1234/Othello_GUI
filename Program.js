@@ -308,6 +308,8 @@ function On_draw()
     ShowCurrentTurn(GetStoneName(CurrentTurn));
     if(IsDebug || NoobMode)
     {
+        console.log("On_Draw");
+        console.log(CurrentTurn);
         ShowGuides(CurrentTurn);
     }
     Texts.forEach(function(item,i)
@@ -421,16 +423,35 @@ function IsBoundAtDirection(pos,direction,grid=8)
 /**盤面に指定した位置に石を置いた場合、裏返す事ができるかどうかを返します。 */
 function IsTurnable(table,stone,at)
 {
+    /*
+    if(Equal(at,MakeVector(2,2)))
+    {
+        console.log("Begin:");
+        console.log(at.GetString());
+    }
+    */
     for(let d of DIRECTIONS)
     {
         var pos = Copy(at);
         var IsDiff = false;
         var IsSame = false;
+        var dist = 1;
         while(true)
         {
             if(IsBoundAtDirection(pos,d)) break;
             Add(pos,d);
             var current = GetStoneAt(table,pos);
+            /*
+            if(Equal(at,MakeVector(2,2)))
+            {
+                console.log(d.GetString() + ":");
+                console.log(current == NONE);
+                console.log(current == stone);
+                console.log("current:" + String(current));
+                console.log("stone: " + String(stone));
+                console.log("pos" + pos.GetString());
+            }
+            */
             if(current == NONE) break;
             else if(current == stone)
             {
@@ -439,7 +460,15 @@ function IsTurnable(table,stone,at)
             }
             else if(current != stone) IsDiff = true;
         }
+        /*
+        if(Equal(at,MakeVector(2,2)))
+        {
+            console.log("IsSame && IsDiff");
+            console.log(IsSame && IsDiff);
+        }
+        */
         if(IsSame && IsDiff) return true;
+        
     }
     return false;
 }
