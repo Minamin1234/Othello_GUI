@@ -81,7 +81,7 @@ const DOWNRIGHT = 7;
 
 const Texts_H = 10;
 
-const IsDebug = true;
+const IsDebug = false;
 var NoobMode = false;
 var IsAutoEnemy = false;
 var Locked = false;
@@ -311,6 +311,7 @@ function On_draw()
     {
         display.fillText(String(item),10,Texts_H*i+10);
     });
+    ShowCurrentTurn(GetStoneName(CurrentTurn));
 }
 
 /**更新される際に呼ばれます。 */
