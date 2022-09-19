@@ -195,10 +195,8 @@ function Start()
 /**指定したグリッド数で描画します。 */
 function drawgrid(grids,color=MakeColor(0,0,0))
 {
-    //display.fillRect(1,1,10,10);
     var dw = W / grids;
     var dh = H / grids;
-    //display.fillText(grids.toString(),10,10);
     display.beginPath();
     display.strokeStyle = color.GetColor();
     var cnt = 0;
@@ -252,6 +250,7 @@ function DrawGuides(list_pos,stone_color)
 //指定した石で配置可能な場所を示す表示を描画させます。
 function ShowGuides(stone)
 {
+    console.log(GetStoneName(stone));
     var puttables = FindPuttables(Table,stone);
     DrawGuides(puttables,GetStoneColor(stone));
 }
@@ -287,8 +286,6 @@ function DrawStones(table,grid)
 /**初期化処理*/
 function On_Initialize()
 {
-    //Player = GetSelectedValue(RADIOBUTTON_PLAYERSTONE);
-    //Other = SwitchStone(Player);
     Player = GetPlayerStone(RADIOBUTTON_PLAYERSTONE);
     Other = SwitchStone(Player);
     CurrentTurn = GetPlayerStone(RADIOBUTTON_PLAYERSTONE);
@@ -305,17 +302,13 @@ function On_draw()
 {
     drawgrid(GRID,COLOR_GRID);
     DrawStones(Table,GRID);
-    ShowCurrentTurn(GetStoneName(CurrentTurn));
     if(IsDebug || NoobMode)
     {
-        console.log("On_Draw");
-        console.log(CurrentTurn);
         ShowGuides(CurrentTurn);
     }
     Texts.forEach(function(item,i)
     {
         display.fillText(String(item),10,Texts_H*i+10);
-        //display.fillText(String(Texts_H*i),10,10);
     });
 }
 
@@ -423,13 +416,6 @@ function IsBoundAtDirection(pos,direction,grid=8)
 /**盤面に指定した位置に石を置いた場合、裏返す事ができるかどうかを返します。 */
 function IsTurnable(table,stone,at)
 {
-    /*
-    if(Equal(at,MakeVector(2,2)))
-    {
-        console.log("Begin:");
-        console.log(at.GetString());
-    }
-    */
     for(let d of DIRECTIONS)
     {
         var pos = Copy(at);
@@ -441,17 +427,6 @@ function IsTurnable(table,stone,at)
             if(IsBoundAtDirection(pos,d)) break;
             Add(pos,d);
             var current = GetStoneAt(table,pos);
-            /*
-            if(Equal(at,MakeVector(2,2)))
-            {
-                console.log(d.GetString() + ":");
-                console.log(current == NONE);
-                console.log(current == stone);
-                console.log("current:" + String(current));
-                console.log("stone: " + String(stone));
-                console.log("pos" + pos.GetString());
-            }
-            */
             if(current == NONE) break;
             else if(current == stone)
             {
@@ -460,13 +435,7 @@ function IsTurnable(table,stone,at)
             }
             else if(current != stone) IsDiff = true;
         }
-        /*
-        if(Equal(at,MakeVector(2,2)))
-        {
-            console.log("IsSame && IsDiff");
-            console.log(IsSame && IsDiff);
-        }
-        */
+
         if(IsSame && IsDiff) return true;
         
     }
@@ -544,15 +513,6 @@ function display_clicked(e)
     var rect = e.target.getBoundingClientRect();
     var cursor_pos = new Vector2D(e.clientX-rect.left,e.clientY-rect.top);
     var gridpos = GetCursorGridPos(cursor_pos,8,W,H);
-    //On_PutStone(CurrentTurn,gridpos);
-    /*
-    PutStone(Table,gridpos,STONE_WHITE);
-    PrintString(gridpos.GetString());
-
-    FindTurn(Table,STONE_WHITE,gridpos);
-    PrintString(GetSelectedValue("player_stone"));
-    */
-    
     PutStone(Table,gridpos,CurrentTurn);
     if(IsDebug)
     {
