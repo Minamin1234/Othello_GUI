@@ -289,6 +289,7 @@ function On_Initialize()
     Player = GetPlayerStone(RADIOBUTTON_PLAYERSTONE);
     Other = SwitchStone(Player);
     CurrentTurn = GetPlayerStone(RADIOBUTTON_PLAYERSTONE);
+    FindAllPuttables(Table);
 }
 
 /**画面を全消去します。*/
@@ -493,6 +494,33 @@ function FindPuttables(table,stone)
     return puttables;
 }
 
+/**両方の石の配置可能な位置リストを更新します。 */
+function FindAllPuttables(table)
+{
+    White_Puttables = FindPuttables(table,STONE_WHITE);
+    Black_Puttables = FindPuttables(table,STONE_BLACK);
+}
+
+/**指定した位置に石が置けるかどうかを判定します。 */
+function IsPuttable(at,stone)
+{
+    if(stone == STONE_BLACK)
+    {
+        for(var i of Black_Puttables)
+        {
+            if(Equal(i,at)) return true;
+        }
+    }
+    else if(stone == STONE_WHITE)
+    {
+        for(var i of White_Puttables)
+        {
+            if(Equal(i,at)) return true;
+        }
+    }
+    return false;
+}
+
 /**石が置かれた際に呼ばれます。 */
 function On_PutStone(put_stone,at)
 {
@@ -513,13 +541,18 @@ function display_clicked(e)
     var rect = e.target.getBoundingClientRect();
     var cursor_pos = new Vector2D(e.clientX-rect.left,e.clientY-rect.top);
     var gridpos = GetCursorGridPos(cursor_pos,8,W,H);
-    PutStone(Table,gridpos,CurrentTurn);
-    if(IsDebug)
+    console.log(IsPuttable(gridpos,CurrentTurn));
+    if(IsPuttable(gridpos,CurrentTurn))
     {
-        PrintString(gridpos.GetString());
+        PutStone(Table,gridpos,CurrentTurn);
+        if(IsDebug)
+        {
+            PrintString(gridpos.GetString());
+        }
+        FindTurn(Table,CurrentTurn,gridpos);
+        FindAllPuttables(Table);
+        CurrentTurn = SwitchStone(CurrentTurn);
     }
-    FindTurn(Table,CurrentTurn,gridpos);
-    CurrentTurn = SwitchStone(CurrentTurn);
     On_draw();
 }
 
