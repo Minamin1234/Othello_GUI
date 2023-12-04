@@ -6,9 +6,6 @@
 - [./Program.js](./Program.js)
 オセロに関する処理全般。
 
-- [./Display.js](./Display.js)
-盤面の描画に関する処理全般。
-
 - [./index.html](./index.html)
 メインのHTMLファイル。
 
